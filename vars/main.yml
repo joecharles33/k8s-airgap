@@ -1,2 +1,3 @@
 ---
 # vars file for k8s-airgap
+airgap_host: 

@@ -1,2 +1,51 @@
 ---
 # tasks file for k8s-airgap
+- name: create bundle directory
+    path: "{{ lookup('env', 'USER') }}/bundle"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: '0775'
+  delegate_to: localhost
+
+- name: fetch the installer tar ball
+  get_url:
+    url: https://k8s.kurl.sh/bundle/latest.tar.gz
+    dest: "{{ lookup('env', 'HOME') }}/bundle"
+  delegate_to: localhost
+
+- name: push bundle to airgap host
+  shell: rsync --progress -avzh "{{ lookup('env', 'USER') }}/bundle" "{{ lookup('env', 'USER') }}"@"{{ airgap_host }}":~
+  register: rsync
+
+- debug:
+    var: rsync
+
+- name: unpack the tarball on the airgap host
+  shell: tar xvf ${HOME}/latest.tar.gz
+
+- name: run the install script to install k8s
+  shell: cat install.sh | sudo bash -s airgap
+
+- name: reload shell
+  shell: bash -l
+
+- name: validate k3s cluster deployment
+  shell: kubectl get nodes
+  vars: 
+    ansible_become: false
+  register: node
+
+- name: display nodes
+  debug:
+    var: node.stdout_lines 
+
+- name: list core pods
+  shell: kubectl get pods -A
+  vars: 
+    ansible_become: false
+  register: pods
+
+- name: display pods
+  debug:
+    var: pods.stdout_lines
+
