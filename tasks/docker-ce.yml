@@ -1,0 +1,6 @@
+1. enable docker-ce repo on connected machine
+2. download docker-ce rpms
+3. bundle the stuff up
+4. ship to airgap 
+5. install docker-ce
+6. service start/enable docker-ce
