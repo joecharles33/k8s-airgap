@@ -1,31 +1,36 @@
 ---
 # tasks file for k8s-airgap
 - name: create bundle directory
+  file:
     path: "{{ lookup('env', 'HOME') }}/bundle"
     owner: "{{ lookup('env', 'USER') }}"
     group: "{{ lookup('env', 'USER') }}"
     mode: '0775'
+    state: directory
   delegate_to: localhost
 
-- name: fetch the installer tar ball
+- name: check for kurl tarball first
+  stat:
+    path: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
+  register: k8star
+  delegate_to: localhost
+
+- name: fetch the installer tarball
   get_url:
     url: https://k8s.kurl.sh/bundle/latest.tar.gz
-    dest: "{{ lookup('env', 'HOME') }}/bundle"
+    dest: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
   delegate_to: localhost
 
-- name: push bundle to airgap host
-  shell: rsync --progress -avzh "{{ lookup('env', 'HOME') }}/bundle" "{{ lookup('env', 'USER') }}"@"{{ airgap_host }}":~
-  register: rsync
-  delegate_to: localhost
-
-- debug:
-    var: rsync
-
-- name: unpack the tarball on the airgap host
-  shell: tar xvf ${HOME}/bundle/latest.tar.gz
+- name: unpack the tarball to the airgap node
+  unarchive:
+    src: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
+    dest: "{{ lookup('env', 'HOME') }}/bundle/"
+    creates: "{{ lookup('env', 'HOME')}}/bundle/kurl"
 
 - name: run the install script to install k8s
   shell: cat ${HOME}/bundle/install.sh | sudo bash -s airgap
+  args:
+    chdir: "{{ lookup('env', 'HOME')}}/bundle"
 
 - name: reload shell
   shell: bash -l
