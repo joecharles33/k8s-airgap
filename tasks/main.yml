@@ -1,7 +1,7 @@
 ---
 # tasks file for k8s-airgap
 - name: create bundle directory
-    path: "{{ lookup('env', 'USER') }}/bundle"
+    path: "{{ lookup('env', 'HOME') }}/bundle"
     owner: "{{ lookup('env', 'USER') }}"
     group: "{{ lookup('env', 'USER') }}"
     mode: '0775'
@@ -14,7 +14,7 @@
   delegate_to: localhost
 
 - name: push bundle to airgap host
-  shell: rsync --progress -avzh "{{ lookup('env', 'USER') }}/bundle" "{{ lookup('env', 'USER') }}"@"{{ airgap_host }}":~
+  shell: rsync --progress -avzh "{{ lookup('env', 'HOME') }}/bundle" "{{ lookup('env', 'USER') }}"@"{{ airgap_host }}":~
   register: rsync
   delegate_to: localhost
 
