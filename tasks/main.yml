@@ -22,10 +22,10 @@
     var: rsync
 
 - name: unpack the tarball on the airgap host
-  shell: tar xvf ${HOME}/latest.tar.gz
+  shell: tar xvf ${HOME}/bundle/latest.tar.gz
 
 - name: run the install script to install k8s
-  shell: cat install.sh | sudo bash -s airgap
+  shell: cat ${HOME}/bundle/install.sh | sudo bash -s airgap
 
 - name: reload shell
   shell: bash -l
