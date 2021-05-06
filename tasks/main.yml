@@ -16,6 +16,7 @@
 - name: push bundle to airgap host
   shell: rsync --progress -avzh "{{ lookup('env', 'USER') }}/bundle" "{{ lookup('env', 'USER') }}"@"{{ airgap_host }}":~
   register: rsync
+  delegate_to: localhost
 
 - debug:
     var: rsync
