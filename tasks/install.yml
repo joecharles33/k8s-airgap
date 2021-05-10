@@ -1,0 +1,35 @@
+- name: create bundle directory
+  file:
+    path: "{{ lookup('env', 'HOME') }}/bundle"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: '0775'
+    state: directory
+  delegate_to: localhost
+
+- name: check for kurl tarball first
+  stat:
+    path: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
+  register: k8star
+  delegate_to: localhost
+
+- name: fetch the installer tarball
+  get_url:
+    url: https://k8s.kurl.sh/bundle/latest.tar.gz
+    dest: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
+  delegate_to: localhost
+  when: k8star.stat.path is not defined
+
+- name: unpack the tarball to the airgap node
+  unarchive:
+    src: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
+    dest: "{{ lookup('env', 'HOME') }}/bundle/"
+    creates: "{{ lookup('env', 'HOME')}}/bundle/kurl"
+
+- name: run the install script to install k8s
+  shell: cat ${HOME}/bundle/install.sh | sudo bash -x -s airgap
+  args:
+    chdir: "{{ lookup('env', 'HOME')}}/bundle"
+
+- name: reload shell
+  shell: bash -l

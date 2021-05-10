@@ -1,6 +1,64 @@
-1. enable docker-ce repo on connected machine
-2. download docker-ce rpms
-3. bundle the stuff up
-4. ship to airgap 
-5. install docker-ce
-6. service start/enable docker-ce
+- name: add docker-ce repo on connected machine
+  yum_repository:
+    name: docker-ce
+    baseurl: https://download.docker.com/linux/centos/8/x86_64/stable/
+    description: docker-ce repo
+    enabled: true
+  delegate_to: localhost
+
+- name: download docker-ce
+  shell: sudo dnf install --nobest docker-ce -y
+  #- name: install docker-ce rpms
+  #  yum:
+  #    name: docker-ce
+  #    state: latest
+  #  delegate_to: localhost
+
+- name: start and enable docker-ce service
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: create docker-ce directory
+  file:
+    path: "{{ lookup('env', 'HOME') }}/docker-ce"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: '0775'
+    state: directory
+  delegate_to: localhost
+
+- name: download docker-ce
+  shell: yumdownloader --resolve docker-ce 
+  args:
+    chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
+  delegate_to: localhost
+
+- name: bundle up docker-ce package
+  archive:
+    path: "{{ lookup('env', 'HOME') }}/docker-ce/*"
+    dest: "{{ lookup('env', 'HOME') }}/docker-ce/docker-ce.tar"
+    format: tar
+  delegate_to: localhost
+
+- name: unpack the tarball to the airgap host
+  unarchive:
+    src: "{{ lookup('env', 'HOME') }}/docker-ce/docker-ce.tar"
+    dest: "{{ lookup('env', 'HOME') }}/docker-ce/"
+
+- name: install docker-ce on airgap host
+  shell:  rpm -ivh --replacefiles --replacepkgs *.rpm
+  args:
+    chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
+
+    #- name: install docker-ce on airgap host
+    #  yum:
+    #    name: "{{ lookup('env', 'HOME') }}/docker-ce/*.rpm"
+    #    state: present
+
+- name: start and enable docker-ce service
+  service:
+    name: docker-ce
+    state: started
+    enabled: true

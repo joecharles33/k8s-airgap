@@ -1,0 +1,20 @@
+- name: validate k3s cluster deployment
+  shell: kubectl get nodes
+  vars:
+    ansible_become: false
+  register: node
+
+- name: display nodes
+  debug:
+    var: node.stdout_lines
+
+- name: list core pods
+  shell: kubectl get pods -A
+  vars:
+    ansible_become: false
+  register: pods
+
+- name: display pods
+  debug:
+    var: pods.stdout_lines
+
