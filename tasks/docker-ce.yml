@@ -6,6 +6,12 @@
     enabled: true
   delegate_to: localhost
 
+- name: remove podman if present
+  yum: 
+    name: podman
+    state: absent
+  ignore_errors: true
+
 - name: download docker-ce
   shell: sudo dnf install --nobest docker-ce -y
   #- name: install docker-ce rpms
