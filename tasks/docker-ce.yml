@@ -57,6 +57,7 @@
   shell:  rpm -ivh --replacefiles --replacepkgs *.rpm
   args:
     chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
+  ignore_errors: true
 
     #- name: install docker-ce on airgap host
     #  yum:
@@ -65,6 +66,6 @@
 
 - name: start and enable docker-ce service
   service:
-    name: docker-ce
+    name: docker
     state: started
     enabled: true

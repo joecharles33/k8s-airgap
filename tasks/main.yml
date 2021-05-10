@@ -1,10 +1,10 @@
 ---
 # tasks file for k8s-airgap
-- name: 'role:include_tasks | install.yml'
-  include_tasks: install.yml
-
 - name: 'role:include_tasks | docker-ce.yml'
   include_tasks: docker-ce.yml
+
+- name: 'role:include_tasks | install.yml'
+  include_tasks: install.yml
 
 - name: 'role:include_tasks | validate.yml'
   include_tasks: validate.yml

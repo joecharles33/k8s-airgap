@@ -30,6 +30,12 @@
   shell: cat ${HOME}/bundle/install.sh | sudo bash -x -s airgap
   args:
     chdir: "{{ lookup('env', 'HOME')}}/bundle"
+  vars:
+    ansible_become: false
+  register: sc
+
+- debug:
+    var: sc.stdout
 
 - name: reload shell
   shell: bash -l
