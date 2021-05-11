@@ -1,3 +1,16 @@
 ---
 # vars file for k8s-airgap
 airgap_host: 
+
+il2_ironbank_images_names:
+  -
+  -
+  -
+il2_ironbank_images:
+  -
+  -
+  -
+
+docker_username:
+docker_password:
+

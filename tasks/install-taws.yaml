@@ -1,0 +1,71 @@
+- name: login to docker
+  docker_login:
+    username: "{{ docker_username }}"
+    password: "{{ docker_password }}"
+    tls: true
+    registry: "{{ docker_registry }}"
+  delagate_to: localhost
+
+- name: create docker images directory
+  file: 
+    path: "{{ lookup('env', 'HOME')/docker-images }}"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    state: directory
+  vars:
+    ansible_become: false
+  delegate_to: localhost
+
+- name: pull taws images locally
+  docker_image:
+    name: "{{ item.name }}"
+    images: "{{ item.images }}"
+  with_items:
+    - "{{ il2_ironbank_images }}"
+  delagate_to: localhost
+      ## Need to add task on how to properly loop name and images
+      # Remember to add the image-registry image as part of images to pull and bundle up
+      #  Need to find where the images are stored in oroder to bundle them up
+
+- name: archive images
+  archive: 
+    path: "{{ lookup('env', 'HOME')/docker-images/* }}"
+    dest: "{{ lookup('env', 'HOME')/docker-images/docker-images.tar }}"
+    format: tar
+  delagate_to: localhost
+  # This path may be wrong, might need to be replaced with the correct path
+
+- name: create local registry directory
+  file:
+    path: /var/lib/registry
+    state: directory
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: 0775
+    recurse: true
+
+- name: send images to airgap host
+  unarchive:
+    src: "{{ lookup('env', 'HOME')/docker-images/docker-images.tar }}"
+    dest: /var/lib/registry
+
+- name: edit the registry config file
+  lineinfile:
+    dest: /etc/containers/registries.conf
+    state: present
+    insertafter: '\[registries.insecure\]'
+    regexp: '^registries = \[\]'
+    line: "registries = ['localhost:5000']"
+
+- name: standup docker registry on airgap host
+  shell: docker run --privileged -d --name registry -p 5000:5000 -v /var/lib/registry:/var/lib/registry --restart=always registry:2
+
+- name: push images to local registry on airgap
+  docker_image:
+    name:
+    push: true
+    load_path: /var/lib/registry
+
+- name: deploy taws application
+  # need to test to determine the correct path
+  # in order to be able to run `kubectl apply` on the kuztomize file
