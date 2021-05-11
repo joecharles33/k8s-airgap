@@ -18,10 +18,10 @@
 
 - name: pull taws images locally
   docker_image:
-    name: "{{ item.name }}"
-    images: "{{ item.images }}"
+    name: "{{ item }}"
+    images: "{{ item }}"
   with_items:
-    - "{{ il2_ironbank_images }}"
+    - "{{ item.il2_ironbank_images }}"
   delagate_to: localhost
       ## Need to add task on how to properly loop name and images
       # Remember to add the image-registry image as part of images to pull and bundle up
