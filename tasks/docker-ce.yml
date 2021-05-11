@@ -46,18 +46,23 @@
     path: "{{ lookup('env', 'HOME') }}/docker-ce/*"
     dest: "{{ lookup('env', 'HOME') }}/docker-ce/docker-ce.tar"
     format: tar
+  vars:
+    ansible_become: false
   delegate_to: localhost
 
 - name: unpack the tarball to the airgap host
   unarchive:
     src: "{{ lookup('env', 'HOME') }}/docker-ce/docker-ce.tar"
     dest: "{{ lookup('env', 'HOME') }}/docker-ce/"
+  vars:
+    ansible_become: false
 
 - name: install docker-ce on airgap host
   shell:  rpm -ivh --replacefiles --replacepkgs *.rpm
   args:
     chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
-  ignore_errors: true
+  vars:
+    ansible_become: false
 
     #- name: install docker-ce on airgap host
     #  yum:

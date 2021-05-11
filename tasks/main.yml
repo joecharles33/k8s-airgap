@@ -9,3 +9,5 @@
 - name: 'role:include_tasks | validate.yml'
   include_tasks: validate.yml
 
+- name: 'role:include_tasks | install-taws.yaml'
+  include_tasks: install-taws.yaml
