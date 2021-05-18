@@ -12,19 +12,11 @@
     state: absent
   ignore_errors: true
 
-- name: download docker-ce
-  shell: sudo dnf install --nobest docker-ce -y
-  #- name: install docker-ce rpms
-  #  yum:
-  #    name: docker-ce
-  #    state: latest
-  #  delegate_to: localhost
-
-- name: start and enable docker-ce service
-  service:
-    name: docker
-    state: started
-    enabled: true
+- name: install yum-utils package
+  package:
+    name: yum-utils
+    state: present
+  delegate_to: localhost
 
 - name: create docker-ce directory
   file:
@@ -36,10 +28,30 @@
   delegate_to: localhost
 
 - name: download docker-ce
-  shell: yumdownloader --resolve docker-ce 
+  shell: yumdownloader --resolve docker-ce
   args:
     chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
   delegate_to: localhost
+
+- name: download docker-ce
+  shell: dnf install --nogpgcheck --nobest docker-ce -y
+  delegate_to: localhost
+
+- name: start and enable docker-ce service
+  service:
+    name: docker
+    state: started
+    enabled: true
+  delegate_to: localhost
+  
+
+- name: create docker-ce directory
+  file:
+    path: "{{ lookup('env', 'HOME') }}/docker-ce"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: '0775'
+    state: directory
 
 - name: bundle up docker-ce package
   archive:
@@ -57,12 +69,18 @@
   vars:
     ansible_become: false
 
+- name: check for docker-ce
+  command: rpm -qa | grep docker-ce
+  register: package
+  ignore_errors: true
+
 - name: install docker-ce on airgap host
   shell:  rpm -ivh --replacefiles --replacepkgs *.rpm
   args:
     chdir: "{{ lookup('env', 'HOME')}}/docker-ce"
   vars:
     ansible_become: false
+  when: package.rc != 0
 
     #- name: install docker-ce on airgap host
     #  yum:

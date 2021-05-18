@@ -1,6 +1,6 @@
 ---
 # vars file for k8s-airgap
-airgap_host: 
+airgap_host: 10.1.1.149
 
 il2_ironbank_images_names:
   -

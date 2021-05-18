@@ -7,6 +7,14 @@
     state: directory
   delegate_to: localhost
 
+- name: create directory on target
+  file:
+    path: "{{ lookup('env', 'HOME') }}/bundle"
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
+    mode: '0775'
+    state: directory
+    
 - name: check for kurl tarball first
   stat:
     path: "{{ lookup('env', 'HOME') }}/bundle/latest.tar.gz"
@@ -27,11 +35,9 @@
     creates: "{{ lookup('env', 'HOME')}}/bundle/kurl"
 
 - name: run the install script to install k8s
-  shell: cat ${HOME}/bundle/install.sh | sudo bash -x -s airgap
+  shell: cat ${HOME}/bundle/install.sh | bash -x -s airgap
   args:
     chdir: "{{ lookup('env', 'HOME')}}/bundle"
-  vars:
-    ansible_become: false
   register: sc
 
 - debug:
